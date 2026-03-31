@@ -1,0 +1,60 @@
+name: iOS — security
+
+on:
+  workflow_call:
+    secrets:
+      SNYK_TOKEN:
+        required: true
+
+jobs:
+  security-sast-and-deps:
+    name: SAST, secrets & dependency scan
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select Xcode (for SwiftPM resolution context)
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew/downloads
+          key: brew-dl-${{ runner.os }}-sec-${{ hashFiles('.github/workflows/ios-*.yml') }}
+          restore-keys: brew-dl-${{ runner.os }}-
+
+      - name: Install scanners
+        run: |
+          brew list semgrep &>/dev/null || brew install semgrep
+          if ! brew list snyk &>/dev/null; then brew tap snyk/tap && brew install snyk; fi
+          brew list trufflehog &>/dev/null || brew install trufflehog
+
+      - name: Semgrep (Swift-focused static analysis)
+        run: semgrep scan --config p/swift --error --metrics off
+
+      - name: TruffleHog — secret pattern scan
+        run: trufflehog filesystem . --fail
+
+      - name: Snyk — SwiftPM / iOS dependencies
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          if [ -z "${SNYK_TOKEN:-}" ]; then
+            echo "SNYK_TOKEN secret is not set. Add it in repo Settings → Secrets."
+            exit 1
+          fi
+          snyk auth "$SNYK_TOKEN"
+          if [ -f Package.swift ] || [ -f Package.resolved ]; then
+            snyk test --file=Package.swift --fail-on=all
+          elif [ -f Podfile ]; then
+            snyk test --file=Podfile.lock --fail-on=all
+          else
+            snyk test --fail-on=all
+          fi

@@ -1,0 +1,110 @@
+name: iOS — tests & coverage
+
+on:
+  workflow_call:
+    inputs:
+      scheme:
+        type: string
+        description: Xcode scheme to test
+        default: PipelineTest1
+      project:
+        type: string
+        description: Xcode project path
+        default: PipelineTest1.xcodeproj
+      simulator_destination:
+        type: string
+        description: xcodebuild -destination value
+        default: platform=iOS Simulator,name=iPhone 16,OS=latest
+      coverage_threshold_percent:
+        type: string
+        description: Minimum line coverage (0–100)
+        default: "80"
+
+jobs:
+  test-and-coverage:
+    name: Unit tests & coverage gate
+    runs-on: macos-15
+    env:
+      SCHEME: ${{ inputs.scheme }}
+      PROJECT: ${{ inputs.project }}
+      SIMULATOR_DESTINATION: ${{ inputs.simulator_destination }}
+      COVERAGE_THRESHOLD_PERCENT: ${{ inputs.coverage_threshold_percent }}
+      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Cache SPM
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved', '**/project.pbxproj') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: derived-${{ runner.os }}-${{ hashFiles('**/project.pbxproj', '**/Package.resolved', '**/*.swift') }}
+          restore-keys: derived-${{ runner.os }}-
+
+      - name: Run unit tests with coverage
+        run: |
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination "${SIMULATOR_DESTINATION}" \
+            -enableCodeCoverage YES \
+            -derivedDataPath DerivedData \
+            -resultBundlePath TestResults.xcresult
+
+      - name: Enforce minimum line coverage (${{ inputs.coverage_threshold_percent }}%)
+        run: |
+          python3 << 'PY'
+          import json, subprocess, sys
+
+          threshold = float("${{ inputs.coverage_threshold_percent }}") / 100.0
+          r = subprocess.run(
+              ["xcrun", "xccov", "view", "--report", "--json", "TestResults.xcresult"],
+              capture_output=True,
+              text=True,
+              check=True,
+          )
+          data = json.loads(r.stdout)
+
+          def line_coverage_from_targets(targets):
+              cov_lines = 0
+              exe_lines = 0
+              for t in targets:
+                  name = t.get("name") or ""
+                  if not name.endswith(".app"):
+                      continue
+                  cov_lines += int(t.get("coveredLines") or 0)
+                  exe_lines += int(t.get("executableLines") or 0)
+              if exe_lines == 0:
+                  return None
+              return cov_lines / exe_lines
+
+          line_cov = data.get("lineCoverage")
+          if line_cov is None and data.get("targets"):
+              line_cov = line_coverage_from_targets(data["targets"])
+
+          if line_cov is not None and line_cov > 1.0:
+              line_cov = line_cov / 100.0
+
+          if line_cov is None:
+              print("Could not compute line coverage from xccov JSON; inspect TestResults.xcresult")
+              print(json.dumps(data, indent=2)[:4000])
+              sys.exit(1)
+
+          print(f"Line coverage: {line_cov:.2%} (minimum {threshold:.0%})")
+          if line_cov + 1e-9 < threshold:
+              sys.exit(1)
+          PY
