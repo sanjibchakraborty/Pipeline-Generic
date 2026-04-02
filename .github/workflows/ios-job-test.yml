@@ -6,19 +6,22 @@ on:
       scheme:
         type: string
         description: Xcode scheme to test
-        default: PipelineTest1
+        default: PipelineGeneric
       project:
         type: string
         description: Xcode project path
-        default: PipelineTest1.xcodeproj
+        default: PipelineGeneric/PipelineGeneric.xcodeproj
       simulator_destination:
         type: string
-        description: xcodebuild -destination value
-        default: platform=iOS Simulator,name=iPhone 16,OS=latest
+        description: xcodebuild -destination value, or "auto" to pick first available iPhone Simulator (recommended for CI)
+        default: auto
       coverage_threshold_percent:
         type: string
         description: Minimum line coverage (0–100)
         default: "80"
+
+env:
+  XCODE_VERSION: latest-stable
 
 jobs:
   test-and-coverage:
@@ -32,35 +35,43 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: ${{ env.XCODE_VERSION }}
 
       - name: Cache SPM
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Caches/org.swift.swiftpm
             ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
-          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved', '**/project.pbxproj') }}
+          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved', 'PipelineGeneric/PipelineGeneric.xcodeproj/project.pbxproj') }}
           restore-keys: spm-${{ runner.os }}-
 
       - name: Cache DerivedData
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: derived-${{ runner.os }}-${{ hashFiles('**/project.pbxproj', '**/Package.resolved', '**/*.swift') }}
+          key: derived-${{ runner.os }}-${{ hashFiles('PipelineGeneric/PipelineGeneric.xcodeproj/project.pbxproj', '**/Package.resolved', 'PipelineGeneric/**/*.swift') }}
           restore-keys: derived-${{ runner.os }}-
 
       - name: Run unit tests with coverage
         run: |
+          set -euo pipefail
+          if [ "${SIMULATOR_DESTINATION}" = "auto" ]; then
+            DeviceId="$(python3 "${{ github.workspace }}/.github/scripts/ios_first_iphone_sim_udid.py")"
+            DEST="id=${DeviceId}"
+          else
+            DEST="${SIMULATOR_DESTINATION}"
+          fi
+          echo "Using -destination ${DEST}"
           xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
-            -destination "${SIMULATOR_DESTINATION}" \
+            -destination "${DEST}" \
             -enableCodeCoverage YES \
             -derivedDataPath DerivedData \
             -resultBundlePath TestResults.xcresult
@@ -68,9 +79,9 @@ jobs:
       - name: Enforce minimum line coverage (${{ inputs.coverage_threshold_percent }}%)
         run: |
           python3 << 'PY'
-          import json, subprocess, sys
+          import json, os, subprocess, sys
 
-          threshold = float("${{ inputs.coverage_threshold_percent }}") / 100.0
+          threshold = float(os.environ["COVERAGE_THRESHOLD_PERCENT"]) / 100.0
           r = subprocess.run(
               ["xcrun", "xccov", "view", "--report", "--json", "TestResults.xcresult"],
               capture_output=True,

@@ -1,0 +1,22 @@
+---
+description: iOS DevOps kit — agent runs git remote + push when URL is given; do not hand off remote as developer-only work
+alwaysApply: true
+---
+
+# iOS DevOps — remote is agent work (not a “you still do this” item)
+
+This repo uses the iOS DevOps Cursor kit (`ios-devops-agent-playbook.mdc`). Obey it for full ordering.
+
+**When the developer pastes a Git remote clone URL** (HTTPS or SSH) during Git or CI bootstrap:
+
+- You **must** run `git remote add origin <url>` or `git remote set-url origin <url>` and `git push -u origin "$(git branch --show-current)"` (or equivalent) **in the integrated terminal** for this workspace—**before** you treat Git setup as finished.
+- **Do not** tell them that adding the remote and pushing is “not done by the agent,” “you still do this,” or a manual follow-up **if you have shell access and they gave a URL**. You do it; only **auth failures** after a real attempt justify asking them to fix credentials and ask you to **retry**.
+
+**If they have not pasted a URL yet:**
+
+- **Ask once** for the empty repo’s clone URL and state you will run add + push when they paste it—or accept **skip remote**.
+- **Do not** replace that with a copy-paste-only `git remote` / `git push` checklist as the default handoff.
+
+**Keep topics separate in handoffs:** Git remote/push (agent when URL exists) vs **Apple signing / TestFlight GitHub secrets** (developer configures in repo settings—see **`README.md`** and **`.github/workflows/ios-release.yml`** / **`ios.yml`**). Never merge those into one “you still must…” line that sounds like **both** are manual Git steps.
+
+**No duplicate kit folder:** If `ios-devops-cursor-kit/` exists next to root `.github/workflows/`, **delete the nested kit directory** (see `SETUP_IOS_DEVOPS_KIT.md` Step 1b)—do not copy workflows into root again; root is canonical.

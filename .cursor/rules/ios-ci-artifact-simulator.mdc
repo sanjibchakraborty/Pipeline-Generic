@@ -1,0 +1,35 @@
+---
+description: Run a downloaded GitHub Actions iOS Simulator .app — unzip, rename to .app, simctl install and launch
+alwaysApply: false
+---
+
+# Run CI Simulator artifact locally
+
+## Problem
+
+`actions/upload-artifact` zips the `.app`. After unzip, the folder is often named like **`<artifact-name>`** (e.g. `PipelineGeneric-iphonesimulator-Debug`), not `MyApp.app`. `simctl` needs a directory whose name ends in **`.app`**.
+
+## Steps
+
+1. Unzip the artifact.
+2. Find the folder that contains the **executable**, `Info.plist`, and `PkgInfo`.
+3. Rename that folder to **`<ExecutableName>.app`** (match the main binary name; extension must be `.app`).
+
+   ```bash
+   mv "/path/to/PipelineGeneric-iphonesimulator-Debug" "/path/to/PipelineGeneric.app"
+   ```
+
+4. Open **Simulator** (or `xcrun simctl boot "iPhone 16"` — use a device list from `xcrun simctl list devices available`).
+5. Install and launch:
+
+   ```bash
+   xcrun simctl install booted "/full/path/PipelineGeneric.app"
+   xcrun simctl launch booted <CFBundleIdentifier>
+   ```
+
+   Bundle ID: Xcode target **General** or `Info.plist` / `project.pbxproj` `PRODUCT_BUNDLE_IDENTIFIER` (this repo: `com.codeandtheory.PipelineGeneric`).
+
+## Errors
+
+- **No such file** — path must be the **renamed** `.app` bundle, not the raw artifact folder name.
+- **Install failed** — simulator iOS version should be **≥** `IPHONEOS_DEPLOYMENT_TARGET` from the project that built the artifact.

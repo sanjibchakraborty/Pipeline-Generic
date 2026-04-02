@@ -3,8 +3,13 @@ name: iOS — security
 on:
   workflow_call:
     secrets:
+      # Must be `required: false` so `secrets: inherit` works when the secret is unset.
+      # The Snyk step skips (with a notice) if SNYK_TOKEN is empty.
       SNYK_TOKEN:
-        required: true
+        required: false
+
+env:
+  XCODE_VERSION: latest-stable
 
 jobs:
   security-sast-and-deps:
@@ -14,17 +19,17 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Select Xcode (for SwiftPM resolution context)
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: ${{ env.XCODE_VERSION }}
 
       - name: Cache Homebrew downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/Library/Caches/Homebrew/downloads
           key: brew-dl-${{ runner.os }}-sec-${{ hashFiles('.github/workflows/ios-*.yml') }}
@@ -36,8 +41,15 @@ jobs:
           if ! brew list snyk &>/dev/null; then brew tap snyk/tap && brew install snyk; fi
           brew list trufflehog &>/dev/null || brew install trufflehog
 
-      - name: Semgrep (Swift-focused static analysis)
-        run: semgrep scan --config p/swift --error --metrics off
+      - name: Semgrep (auto + repo rules under .semgrep/)
+        run: |
+          semgrep scan \
+            --config auto \
+            --config .semgrep/mobile.yml \
+            --config .semgrep/ci.yml \
+            --config .semgrep/sentinel.yml \
+            --exclude '**/*.xcconfig' \
+            --error
 
       - name: TruffleHog — secret pattern scan
         run: trufflehog filesystem . --fail
@@ -47,8 +59,8 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           if [ -z "${SNYK_TOKEN:-}" ]; then
-            echo "SNYK_TOKEN secret is not set. Add it in repo Settings → Secrets."
-            exit 1
+            echo "::notice::SNYK_TOKEN is not set — skipping Snyk. Add the secret under Settings → Secrets and variables → Actions to enable dependency scanning."
+            exit 0
           fi
           snyk auth "$SNYK_TOKEN"
           if [ -f Package.swift ] || [ -f Package.resolved ]; then

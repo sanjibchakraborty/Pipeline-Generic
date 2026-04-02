@@ -1,0 +1,13 @@
+# Xcode / Swift
+DerivedData/
+DerivedDataCI/
+*.xcuserstate
+xcuserdata/
+
+# fastlane / Ruby
+fastlane/keys/
+vendor/bundle/
+.bundle/
+
+# Reports (generated in CI)
+Reports/

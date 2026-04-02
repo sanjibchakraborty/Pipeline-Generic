@@ -1,0 +1,97 @@
+---
+description: Agent playbook — ordered steps for Git + GitHub Actions iOS CI + simulator artifacts on new Xcode projects
+alwaysApply: false
+---
+
+# iOS DevOps playbook (agent order)
+
+When the user asks to set up **Git**, **CI/CD**, **GitHub Actions**, or **pipeline** for an **Xcode iOS** app (new or existing), run this sequence without skipping validation steps.
+
+## 0. Reuse across repos (humans + Cursor)
+
+- **One folder (easiest for teams):** merge **contents** of **`ios-devops-cursor-kit/`** into the target repo root (`rsync -a kit/ ./`), append **`GITIGNORE_APPEND.txt`** to `.gitignore`, copy **`SETUP_IOS_DEVOPS_KIT.md`** and **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** to root, then **delete** the nested **`ios-devops-cursor-kit/`** folder from the **app** repo if it is still there—**only root** `.github/`, `.cursor/`, `Gemfile`, `fastlane/` should remain. Duplicating kit inside the app causes two copies; **GitHub Actions only uses `.github/` at the repository root.** Developers run bootstrap by pasting from **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** (see **`SETUP_IOS_DEVOPS_KIT.md`** Step 2).
+- **Flat file list:** **`CURSOR_IOS_DEVOPS_REUSE.md`** (prompts + manifest). Point users there when they ask for “reuse,” “template,” or “1–2 prompts.”
+- **During bootstrap:** if both **`ios-devops-cursor-kit/.github/`** and **root `.github/`** exist, **remove** `ios-devops-cursor-kit/` (after confirming root files are complete)—do **not** recreate root files from the nested folder again.
+- **This reference repo (Pipeline-Generic):** canonical entry workflows are **`ios.yml`** (orchestrator) and reusable **`ios-job-*.yml`** + **`ios-release.yml`** — see **`github-actions-ios-ci.mdc`** for the exact DAG.
+
+## 1. Discover
+
+- Locate `*.xcodeproj` and a **shared** scheme under **`*.xcodeproj/xcshareddata/xcschemes/`** (committed — **not** only under gitignored `xcuserdata/`; CI’s `xcodebuild` will not see user-only schemes).
+- From `project.pbxproj`: `PRODUCT_NAME` / app name, `PRODUCT_BUNDLE_IDENTIFIER`, `IPHONEOS_DEPLOYMENT_TARGET`.
+
+## 2. Remote repository — automate (developer only supplies the URL)
+
+**Goal:** Minimize manual Git for the developer. They should **not** have to run `git remote add` and `git push` themselves unless authentication blocks the agent.
+
+**Early** (when starting Git/DevOps, or right before you finish local Git in §3), **ask once**:
+
+- Paste the **clone URL** for an **empty** remote repo (HTTPS or SSH), **or**
+- Say **skip / no remote yet** — then tell them: create an empty repo on GitHub, GitLab, Azure DevOps, etc. (avoid adding a README on the host if they want zero merge friction), then **paste the URL in chat**; you will run the Git commands on the next message.
+
+**When a URL is provided** and `main` (or the repo’s current default branch) has at least one commit:
+
+1. Resolve remote name: default **`origin`** unless they specify another.
+2. If that remote is missing: `git remote add <name> <url>`.
+3. If it exists but the URL differs: `git remote set-url <name> <url>`.
+4. Push: `git push -u <name> <branch>` where `<branch>` is `git branch --show-current` (expect `main`).
+
+**When the clone URL appears anywhere in the conversation**, run the git commands in the repo’s terminal **in this session** before you call the bootstrap “done.” **Do not** end with a checklist that tells the developer to run `git remote add` / `git push` themselves if you have shell access and they gave a URL—**you** run those commands first.
+
+If they **have not** pasted a URL yet, **do not** write “not done by the agent” / “you still must add remote” as a permanent handoff. Instead **ask once** for the empty repo’s HTTPS or SSH URL and say you will run add + push as soon as they paste it (or they may say **skip remote**).
+
+If **push fails** (auth, etc.), then explain the fix and offer to **retry** after they authenticate—only then is manual intervention expected.
+
+If **push succeeds**, confirm briefly. **Never** imply the project is on the host until push has succeeded.
+
+If **push fails** (auth, permissions, non–fast-forward): report the error, give **targeted** fixes (e.g. `gh auth login`, HTTPS PAT / credential helper, SSH agent and `ssh -T git@github.com`), and **retry** after they fix auth if they ask. Do not default to `--force` or `--force-with-lease` unless they **explicitly** want to overwrite the remote history.
+
+**Reminder:** **local Git ≠ hosted remote** until `remote` is set **and** `push` succeeds.
+
+## 3. Git (local)
+
+- If no `.git`: init on repo root, `git branch -M main`, add Xcode `.gitignore` (see `git-xcode-bootstrap.mdc`), initial commit.
+- Immediately after the first commit (or if commits already exist), **perform §2 remote steps** when the developer has pasted a URL in this session; if they have not, **ask for the URL** (or confirm skip) before closing the handoff.
+
+## 4. CI workflow
+
+**This repository (Pipeline-Generic) — use as the live pattern:**
+
+- **`.github/workflows/ios.yml`** — orchestrator (`workflow_dispatch` optional TestFlight checkbox, push/PR to `main` and `master`).
+- Reusable callees: **`ios-job-lint.yml`**, **`ios-job-security.yml`**, **`ios-job-simulator-artifact.yml`**, **`ios-job-test.yml`**, **`ios-release.yml`** (Match + `gym`, optional upload step).
+- Standalone: **`ios-code-health.yml`**, **`codeql-swift.yml`**, **`.github/dependabot.yml`**.
+- Details and paths: **`github-actions-ios-ci.mdc`**.
+
+**Starting a different app (greenfield or kit merge):**
+
+- Substitute **`.xcodeproj` path**, **scheme**, **bundle id**, artifact names, and **`hashFiles(...)`** paths from `project.pbxproj` / folder layout.
+- Align **`.swiftlint.yml` `included:`** with real source directories.
+- Ensure **`DerivedDataCI/`**, **`fastlane/keys/`**, **`vendor/bundle/`** are gitignored when CI uses them (see repo `.gitignore`).
+
+## 4b. Release / TestFlight
+
+**This repository:**
+
+- **`ios-release.yml`** is **`workflow_call` only** — invoked by **`ios.yml`** on **`main`/`master` push** or **`workflow_dispatch`**.
+- Signing: **Fastlane Match** + **`bundle exec fastlane staging_build`**; optional **`upload_testflight_ipa`** when the orchestrator passes **`upload_to_testflight: true`** (manual run with checkbox).
+- Required secrets are documented in **`README.md`** (not P12/profile-in-YAML).
+
+**Other templates (e.g. raw kit `ios-release.yml`):**
+
+- May use **tag** triggers (`v*`), **base64 P12 + profile** in secrets, and **`xcodebuild` archive/export** in YAML. If you copy that variant into another repo, follow **that** file’s comments for secrets—do not assume it matches this repo’s Match-based **`ios-release.yml`**.
+
+## 5. After green CI
+
+- Explain artifact download → **rename unzipped folder to `App.app`** → `simctl install` / `launch` (see `ios-ci-artifact-simulator.mdc`).
+
+## 5b. Handoff wording — Git remote vs release
+
+- **Git remote + push** are **your** job when a URL is supplied (§2–§3). **Do not** lump them into “not done by the agent” or “you still do this” alongside Apple signing.
+- **Release / TestFlight** require **repository secrets** the agent cannot set—**those** may be described as still on the developer (see **`README.md`** and workflow YAML). Keep the two topics **separate** so users are not told they must manually push when you should push for them.
+
+## Out of scope unless requested
+
+- Do not run or “fix” **release** on behalf of the user without the signing material their workflow expects (e.g. Match repo + password + ASC API key **for this repo**; or Distribution cert + App Store profile + team ID **for P12-style workflows**).
+
+## Reuse on another project
+
+- Obtain the **`ios-devops-cursor-kit`** bundle (template repo, zip, or submodule), **`rsync -a kit/ ./`** into the **new** app’s root, then **remove** the nested **`ios-devops-cursor-kit/`** folder from that app (see **`SETUP_IOS_DEVOPS_KIT.md`** Step 1b). Or copy **`CURSOR_IOS_DEVOPS_REUSE.md`** if your team uses the flat manifest. Otherwise copy `.cursor/rules`, `.github/workflows`, `Gemfile`, `Gemfile.lock`, `fastlane`, and run this playbook with names from `pbxproj`.

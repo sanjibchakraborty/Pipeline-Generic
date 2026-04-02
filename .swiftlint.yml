@@ -1,0 +1,38 @@
+# Paths match PipelineGeneric targets. Edit `included:` if targets move.
+
+included:
+  - PipelineGeneric/PipelineGeneric
+  - PipelineGeneric/PipelineGenericTests
+  - PipelineGeneric/PipelineGenericUITests
+
+excluded:
+  - Pods
+  - Carthage
+  - DerivedData
+  - DerivedDataCI
+  - .build
+
+line_length:
+  warning: 160
+  error: 220
+
+identifier_name:
+  min_length: 2
+  excluded:
+    - id
+    - x
+    - y
+
+type_body_length:
+  warning: 400
+  error: 600
+
+function_body_length:
+  warning: 80
+  error: 120
+
+cyclomatic_complexity:
+  warning: 15
+  error: 25
+
+reporter: xcode

@@ -1,0 +1,57 @@
+# Assembler: triggers + job DAG. Per-job steps live in ios-job-*.yml (workflow_call).
+# SwiftLint + health reports: ios-code-health.yml (standalone). CodeQL: codeql-swift.yml.
+
+name: iOS CI/CD
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      upload_to_testflight:
+        description: After Match + gym on main/master, upload IPA to TestFlight
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ios-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-format:
+    uses: ./.github/workflows/ios-job-lint.yml
+
+  security-sast-and-deps:
+    uses: ./.github/workflows/ios-job-security.yml
+    secrets: inherit
+
+  simulator-debug-app:
+    needs: [lint-and-format, security-sast-and-deps]
+    uses: ./.github/workflows/ios-job-simulator-artifact.yml
+
+  test-and-coverage:
+    needs: [lint-and-format, security-sast-and-deps]
+    uses: ./.github/workflows/ios-job-test.yml
+    with:
+      scheme: PipelineGeneric
+      project: PipelineGeneric/PipelineGeneric.xcodeproj
+      simulator_destination: auto
+      coverage_threshold_percent: "80"
+
+  archive-staging:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'))
+    needs:
+      - lint-and-format
+      - security-sast-and-deps
+      - test-and-coverage
+      - simulator-debug-app
+    uses: ./.github/workflows/ios-release.yml
+    secrets: inherit
+    with:
+      app_identifier: com.codeandtheory.PipelineGeneric
+      upload_to_testflight: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.upload_to_testflight == 'true') }}

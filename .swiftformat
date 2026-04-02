@@ -1,0 +1,6 @@
+# SwiftFormat — https://github.com/nicklockwood/SwiftFormat
+# Aligns with .swiftlint.yml line_length (warning 160) and Xcode / project SWIFT_VERSION.
+
+--maxwidth 160
+--indent 4
+--swiftversion 5

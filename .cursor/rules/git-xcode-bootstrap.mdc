@@ -1,0 +1,44 @@
+---
+description: Git setup for Xcode iOS repos — init, main branch, .gitignore, first commit, remote
+alwaysApply: false
+---
+
+# Git bootstrap (Xcode / iOS)
+
+## When to apply
+
+Repo has Swift/iOS sources and either no `.git` or user asked to “set up git”.
+
+## Steps
+
+0. **Ask upfront for the clone URL** (or skip): Prompt the developer to paste the **HTTPS or SSH clone URL** of an **empty** remote repo when they want the code hosted—or to say **skip** until they have one. **You** add the remote and push after the first commit (see **Remote** below); do not leave them to run `git remote add` / `git push` manually unless push fails and they prefer to fix auth locally.
+
+1. `git init` at repository root (not inside `src/` only).
+2. `git branch -M main`.
+3. Add `.gitignore` before first commit. Minimum for Xcode:
+
+- `.DS_Store`
+- `xcuserdata/`, `*.xcuserstate`, `build/`, `DerivedData/`
+- `*.hmap`, `*.ipa`, `*.dSYM`, `*.dSYM.zip`
+- `.build/`, `.swiftpm/` (SPM)
+- Optional: `Pods/`, `Carthage/Build/`, fastlane outputs
+- If CI uses workspace DerivedData: `DerivedDataCI/`
+- If CI / Fastlane use keys or Bundler: `fastlane/keys/`, `vendor/bundle/`, `.bundle/` (match repo `.gitignore`)
+
+4. `git add -A`, commit with a clear message (e.g. initial project + `.gitignore`).
+5. **Never commit**: `xcuserdata`, local `DerivedData`, generated SPM checkouts unless the team explicitly versions them.
+
+## Remote (agent-automated)
+
+After the first commit on `main` (or the current branch), if the developer provided a URL:
+
+- `git remote add origin <url>` if `origin` is absent, else `git remote set-url origin <url>` if the URL changed.
+- `git push -u origin "$(git branch --show-current)"` (typically `main`).
+
+**Developer minimal steps:** create an empty repo on the host → paste the clone URL in Cursor when asked → you run the commands. If push fails, help with auth (`gh auth login`, SSH, HTTPS credentials), then retry.
+
+If they have **not** pasted a URL yet: remind them the project is **local only** until they do; do not imply the host has the code.
+
+## Non-iOS repos
+
+Replace Xcode entries with stack-specific ignores (e.g. `node_modules/`, `venv/`); keep the same init/branch/remote flow.

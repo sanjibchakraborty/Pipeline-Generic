@@ -1,0 +1,71 @@
+---
+description: GitHub Actions for iOS — this repo’s reusable workflows, CI DAG, Match archive, code health, CodeQL
+globs: .github/workflows/**/*.yml,.github/dependabot.yml
+alwaysApply: false
+---
+
+# GitHub Actions — iOS (this repository)
+
+Canonical paths are under **`.github/workflows/`**.
+
+## Orchestrator — `.github/workflows/ios.yml`
+
+- **Triggers**: `push` / `pull_request` to **`main`** and **`master`**; **`workflow_dispatch`** (optional “upload to TestFlight” for the archive path).
+- **DAG** (reusable `workflow_call` jobs):
+
+| Job | Workflow file |
+|-----|----------------|
+| Lint (SwiftLint + SwiftFormat) | `ios-job-lint.yml` |
+| Security (Semgrep, TruffleHog, Snyk) | `ios-job-security.yml` |
+| Simulator Debug `.app` artifact | `ios-job-simulator-artifact.yml` |
+| Unit tests + **xccov** line coverage gate | `ios-job-test.yml` |
+| Match + `gym` IPA (push to `main`/`master` or manual dispatch) | `ios-release.yml` |
+
+- **Runner / Xcode**: `macos-15` + **`maxim-lobanov/setup-xcode@v1`** with **`env.XCODE_VERSION: latest-stable`** (set in each reusable workflow; keep them aligned when you switch to a pin).
+- **Project**: **`PipelineGeneric/PipelineGeneric.xcodeproj`**, scheme **`PipelineGeneric`**, bundle id **`com.codeandtheory.PipelineGeneric`**.
+
+## Simulator artifact — `.github/workflows/ios-job-simulator-artifact.yml`
+
+- **`xcodebuild build`** (not `test`) on an available iPhone Simulator UDID from **`.github/scripts/ios_first_iphone_sim_udid.py`**.
+- **Unsigned**: `CODE_SIGNING_ALLOWED=NO`, `DerivedDataPath` **`DerivedDataCI`**.
+- **Artifact**: `DerivedDataCI/Build/Products/Debug-iphonesimulator/PipelineGeneric.app` (name/input may use scheme).
+
+## Tests & coverage — `.github/workflows/ios-job-test.yml`
+
+- **`xcodebuild test`** with **`-enableCodeCoverage YES`**, `TestResults.xcresult`, then **`xcrun xccov view --report --json`** + Python gate vs **`coverage_threshold_percent`** (default **80**).
+- **Destination**: **`simulator_destination`** defaults to **`auto`** → UDID via **`.github/scripts/ios_first_iphone_sim_udid.py`**. Use any other value as the full **`-destination`** string to pin a simulator.
+
+## Archive / TestFlight — `.github/workflows/ios-release.yml` + **`fastlane/Fastfile`**
+
+- **Signing**: **Fastlane Match** (read-only app store), not base64 `.p12` / profile in YAML.
+- **Secrets**: `APP_STORE_CONNECT_*`, `MATCH_PASSWORD`, `MATCH_GIT_URL`, optional `MATCH_GIT_BASIC_AUTHORIZATION`.
+- **Build**: **`bundle exec fastlane staging_build`** → **`build/PipelineGeneric.ipa`**.
+- **Optional TestFlight**: after `gym`, **`bundle exec fastlane upload_testflight_ipa`** when the orchestrator passes **`upload_to_testflight: true`** (manual **`workflow_dispatch`** with checkbox).
+
+## Security job — `.github/workflows/ios-job-security.yml`
+
+- **Semgrep** `p/swift`, **TruffleHog** on repo, **Snyk** (runs only if **`SNYK_TOKEN`** is set; otherwise skipped). Separate from CodeQL and from heuristic scripts in code health.
+
+## Lint job — `.github/workflows/ios-job-lint.yml`
+
+- **SwiftFormat** (`swiftformat --lint`, config **`.swiftformat`**) on `PipelineGeneric/PipelineGeneric`, `PipelineGeneric/PipelineGenericTests`, `PipelineGeneric/PipelineGenericUITests`, then **SwiftLint** (`--reporter github-actions-logging`) using **`.swiftlint.yml`**. Code health runs SwiftLint again for JSON + summary artifact.
+
+## Code health — `.github/workflows/ios-code-health.yml`
+
+- **Triggers**: `push` / `pull_request` to **`main`** and **`master`**; **`workflow_dispatch`**.
+- **SwiftLint** JSON + annotations, **fail** on violations; **`.github/scripts/`** → `Reports/*.md`; artifact **`ios-code-health-reports`**.
+- **Config**: **`.swiftlint.yml`** — `included:` paths under **`PipelineGeneric/`**.
+
+## CodeQL — `.github/workflows/codeql-swift.yml`
+
+- Push/PR to **`main`** and **`master`** + weekly **`cron`**.
+- If **Autobuild** fails, use explicit **`xcodebuild`** matching **`PipelineGeneric/PipelineGeneric.xcodeproj`** and scheme **`PipelineGeneric`**.
+
+## Dependabot — `.github/dependabot.yml`
+
+- Weekly bumps for **`github-actions`** ecosystem at repo root (`directory: /`).
+
+## Operations
+
+- Bump **`XCODE_VERSION`** / **`runs-on`** together when GitHub-hosted images change; mirror across **all** workflow files that select Xcode.
+- **`hashFiles(...)`** in caches should reference real paths (e.g. **`PipelineGeneric/PipelineGeneric.xcodeproj/project.pbxproj`**, **`PipelineGeneric/**/*.swift`**).

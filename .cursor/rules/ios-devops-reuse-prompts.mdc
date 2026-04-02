@@ -1,0 +1,13 @@
+---
+description: iOS DevOps — merge ios-devops-cursor-kit/ then SETUP_IOS_DEVOPS_KIT.md, or use CURSOR_IOS_DEVOPS_REUSE.md
+alwaysApply: false
+---
+
+# Reuse this kit in another project
+
+1. **Drop-in folder:** merge **contents** into the repo root (`rsync -a path/to/ios-devops-cursor-kit/ ./`), append **`GITIGNORE_APPEND.txt`**, keep **`SETUP_IOS_DEVOPS_KIT.md`** and **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** at root, then **delete** the nested **`ios-devops-cursor-kit/`** folder (see **`SETUP_IOS_DEVOPS_KIT.md`** Step 1b). Developers paste the bootstrap block from **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** into Cursor Agent (see SETUP Step 2). Ensure **`ios-devops-remote-agent-must-push.mdc`** is present (`alwaysApply: true`).
+2. **Flat copy:** use **`CURSOR_IOS_DEVOPS_REUSE.md`** (same prompts + file manifest).
+
+If neither doc exists, run **`ios-devops-agent-playbook.mdc`** and **`github-actions-ios-ci.mdc`** with substitutions from **`*.xcodeproj/project.pbxproj`**. The playbook expects you to **ask for the remote clone URL and run `git remote` + `git push`** for the developer when possible.
+
+**This repo’s layout (after kit ideas are merged):** orchestrator **`ios.yml`**, reusable jobs **`ios-job-*.yml`**, archive **`ios-release.yml`** — authoritative file list in **`github-actions-ios-ci.mdc`**.
