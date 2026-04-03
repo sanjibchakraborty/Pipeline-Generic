@@ -62,11 +62,16 @@ jobs:
             echo "::notice::SNYK_TOKEN is not set — skipping Snyk. Add the secret under Settings → Secrets and variables → Actions to enable dependency scanning."
             exit 0
           fi
+          # Bare `snyk test` exits 2–3 when no supported manifest exists (e.g. Xcode-only app with no root Package.swift / Podfile).
+          if [ ! -f Package.swift ] && [ ! -f Podfile ] && [ ! -f Podfile.lock ]; then
+            echo "::notice::No Package.swift or Podfile / Podfile.lock at repo root — skipping Snyk. Add SwiftPM or CocoaPods at the repository root, or extend this step for your layout."
+            exit 0
+          fi
           snyk auth "$SNYK_TOKEN"
-          if [ -f Package.swift ] || [ -f Package.resolved ]; then
+          if [ -f Package.swift ]; then
             snyk test --file=Package.swift --fail-on=all
-          elif [ -f Podfile ]; then
+          elif [ -f Podfile.lock ]; then
             snyk test --file=Podfile.lock --fail-on=all
           else
-            snyk test --fail-on=all
+            snyk test --file=Podfile --fail-on=all
           fi

@@ -44,7 +44,7 @@ Canonical paths are under **`.github/workflows/`**.
 
 ## Security job — `.github/workflows/ios-job-security.yml`
 
-- **Semgrep** `p/swift`, **TruffleHog** on repo, **Snyk** (runs only if **`SNYK_TOKEN`** is set; otherwise skipped). Separate from CodeQL and from heuristic scripts in code health.
+- **Semgrep** `p/swift`, **TruffleHog** on repo, **Snyk** (runs only if **`SNYK_TOKEN`** is set **and** repo root has **`Package.swift`** or **`Podfile`** / **`Podfile.lock`**; otherwise skipped — avoids Snyk exit **2** on Xcode-only trees). Separate from CodeQL and from heuristic scripts in code health.
 
 ## Lint job — `.github/workflows/ios-job-lint.yml`
 

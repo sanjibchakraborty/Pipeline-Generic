@@ -38,7 +38,7 @@ From **Actions** → **iOS CI/CD** → **Run workflow**:
 |--------|---------|
 | `SNYK_TOKEN` | `ios-job-security.yml` (Snyk only) |
 
-_Without it, Semgrep and TruffleHog still run; the Snyk step is skipped (notice in the job log). Add **`SNYK_TOKEN`** under **Settings → Secrets and variables → Actions** to enable Snyk._
+_Without **`SNYK_TOKEN`**, or without a root **`Package.swift`** / **`Podfile`** (or **`Podfile.lock`**), the Snyk step is skipped (notice in the job log) so **`snyk test`** is not run on unsupported Xcode-only layouts. Add **`SNYK_TOKEN`** under **Settings → Secrets and variables → Actions** to enable Snyk when you have a supported manifest._
 
 ### Required for archive (Match + `gym` + optional TestFlight)
 
