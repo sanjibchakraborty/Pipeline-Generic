@@ -1,0 +1,4 @@
+# --- iOS DevOps / Pipeline-Generic template (append if missing) ---
+DerivedDataCI/
+fastlane/keys/
+vendor/bundle/

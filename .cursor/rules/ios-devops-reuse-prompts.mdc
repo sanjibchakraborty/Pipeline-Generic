@@ -1,13 +1,32 @@
 ---
-description: iOS DevOps — merge ios-devops-cursor-kit/ then SETUP_IOS_DEVOPS_KIT.md, or use CURSOR_IOS_DEVOPS_REUSE.md
+description: iOS DevOps — Pipeline-Generic template prompts, SETUP_IOS_DEVOPS_KIT.md, CURSOR_IOS_DEVOPS_REUSE.md, apply by repo URL
 alwaysApply: false
 ---
 
-# Reuse this kit in another project
+# Reuse Pipeline-Generic as a template (any Xcode repo)
 
-1. **Drop-in folder:** merge **contents** into the repo root (`rsync -a path/to/ios-devops-cursor-kit/ ./`), append **`GITIGNORE_APPEND.txt`**, keep **`SETUP_IOS_DEVOPS_KIT.md`** and **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** at root, then **delete** the nested **`ios-devops-cursor-kit/`** folder (see **`SETUP_IOS_DEVOPS_KIT.md`** Step 1b). Developers paste the bootstrap block from **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** into Cursor Agent (see SETUP Step 2). Ensure **`ios-devops-remote-agent-must-push.mdc`** is present (`alwaysApply: true`).
-2. **Flat copy:** use **`CURSOR_IOS_DEVOPS_REUSE.md`** (same prompts + file manifest).
+**This repository is the canonical template** (or a fork of it). Prefer **copying infrastructure from here** over keeping a nested `ios-devops-cursor-kit/` folder inside the app repo. Include **`.semgrep/`** with **`.github/`** — **`ios-job-security.yml`** loads those rule files.
 
-If neither doc exists, run **`ios-devops-agent-playbook.mdc`** and **`github-actions-ios-ci.mdc`** with substitutions from **`*.xcodeproj/project.pbxproj`**. The playbook expects you to **ask for the remote clone URL and run `git remote` + `git push`** for the developer when possible.
+## Human + agent entry points
 
-**This repo’s layout (after kit ideas are merged):** orchestrator **`ios.yml`**, reusable jobs **`ios-job-*.yml`**, archive **`ios-release.yml`** — authoritative file list in **`github-actions-ios-ci.mdc`**.
+| Situation | File to use |
+|-----------|-------------|
+| Template files **not** yet in the app; I have a **local path** to Pipeline-Generic and maybe an **empty remote URL** | Root **`CURSOR_IOS_DEVOPS_APPLY_TEMPLATE_PROMPT.txt`** — paste into Agent; fill **TEMPLATE_ROOT** and **TARGET_REMOTE_URL** (or say skip). |
+| Workflows already merged into the app; need **discovery + substitutions** + Git | **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** through **`END BOOTSTRAP`**. |
+| Routing table, file manifest, “I only have a repo URL” | **`CURSOR_IOS_DEVOPS_REUSE.md`**. |
+| Step-by-step copy commands (`rsync`) | **`SETUP_IOS_DEVOPS_KIT.md`**. |
+
+## Repo URL workflow (agent)
+
+- **App clone URL:** If the user wants the pipeline on a repo that is not open yet, **`git clone <url>`** into the workspace (or instruct them to open that clone), then run **apply template** or **bootstrap** from the app root.
+- **Empty remote for the app:** When they paste the **HTTPS or SSH URL** of an empty remote, run **`git remote add` / `set-url` + `git push -u`** per **`ios-devops-remote-agent-must-push.mdc`** after commits exist—do not default to a manual-only checklist.
+
+## Legacy kit folder
+
+If **`ios-devops-cursor-kit/`** still exists next to root **`.github/workflows/`**, **delete** the nested kit directory after root files are authoritative—**`SETUP_IOS_DEVOPS_KIT.md`** Step 1 explains why.
+
+## If prompt files are missing
+
+Run **`ios-devops-agent-playbook.mdc`** and **`github-actions-ios-ci.mdc`** with substitutions from **`*.xcodeproj/project.pbxproj`** and shared **`xcshareddata/xcschemes`**.
+
+**Authoritative workflow layout in this template:** orchestrator **`ios.yml`**, reusable jobs **`ios-job-*.yml`**, archive **`ios-release.yml`** — paths and DAG in **`github-actions-ios-ci.mdc`**.

@@ -9,8 +9,11 @@ When the user asks to set up **Git**, **CI/CD**, **GitHub Actions**, or **pipeli
 
 ## 0. Reuse across repos (humans + Cursor)
 
-- **One folder (easiest for teams):** merge **contents** of **`ios-devops-cursor-kit/`** into the target repo root (`rsync -a kit/ ./`), append **`GITIGNORE_APPEND.txt`** to `.gitignore`, copy **`SETUP_IOS_DEVOPS_KIT.md`** and **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** to root, then **delete** the nested **`ios-devops-cursor-kit/`** folder from the **app** repo if it is still there—**only root** `.github/`, `.cursor/`, `Gemfile`, `fastlane/` should remain. Duplicating kit inside the app causes two copies; **GitHub Actions only uses `.github/` at the repository root.** Developers run bootstrap by pasting from **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** (see **`SETUP_IOS_DEVOPS_KIT.md`** Step 2).
-- **Flat file list:** **`CURSOR_IOS_DEVOPS_REUSE.md`** (prompts + manifest). Point users there when they ask for “reuse,” “template,” or “1–2 prompts.”
+- **Canonical template:** **Pipeline-Generic** (this repo or a fork). Copy **infrastructure only** from a local clone—see **`SETUP_IOS_DEVOPS_KIT.md`** for `rsync` paths. **Do not** copy the template sample app folder **`PipelineGeneric/`** into another product unless replacing that product’s sources.
+- **Single Agent message (copy + wire + optional push):** developer pastes **`CURSOR_IOS_DEVOPS_APPLY_TEMPLATE_PROMPT.txt`** with **TEMPLATE_ROOT** = absolute path to Pipeline-Generic and **TARGET_REMOTE_URL** = empty app remote (HTTPS/SSH) or skip. If they only give the **app’s clone URL**, clone/open that repo first, then apply template from **TEMPLATE_ROOT**.
+- **Files already in the app repo:** developer pastes **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** (through **`END BOOTSTRAP`**) so you substitute **PipelineGeneric** / paths / bundle id across workflows, **`fastlane/Fastfile`**, CodeQL, code health, **`.swiftlint.yml`**, **`.swiftformat`**.
+- **Flat manifest + “I only have a URL” routing:** **`CURSOR_IOS_DEVOPS_REUSE.md`**.
+- **Legacy zip folder:** If teams still use **`ios-devops-cursor-kit/`**, merge **contents** into the app root (`rsync -a kit/ ./`), append **`GITIGNORE_APPEND.txt`**, copy root prompt/setup docs, then **delete** the nested **`ios-devops-cursor-kit/`**—**GitHub Actions only uses `.github/` at the repository root.**
 - **During bootstrap:** if both **`ios-devops-cursor-kit/.github/`** and **root `.github/`** exist, **remove** `ios-devops-cursor-kit/` (after confirming root files are complete)—do **not** recreate root files from the nested folder again.
 - **This reference repo (Pipeline-Generic):** canonical entry workflows are **`ios.yml`** (orchestrator) and reusable **`ios-job-*.yml`** + **`ios-release.yml`** — see **`github-actions-ios-ci.mdc`** for the exact DAG.
 
@@ -94,4 +97,6 @@ If **push fails** (auth, permissions, non–fast-forward): report the error, giv
 
 ## Reuse on another project
 
-- Obtain the **`ios-devops-cursor-kit`** bundle (template repo, zip, or submodule), **`rsync -a kit/ ./`** into the **new** app’s root, then **remove** the nested **`ios-devops-cursor-kit/`** folder from that app (see **`SETUP_IOS_DEVOPS_KIT.md`** Step 1b). Or copy **`CURSOR_IOS_DEVOPS_REUSE.md`** if your team uses the flat manifest. Otherwise copy `.cursor/rules`, `.github/workflows`, `Gemfile`, `Gemfile.lock`, `fastlane`, and run this playbook with names from `pbxproj`.
+- **Preferred:** Clone **Pipeline-Generic**, then from the **target app** root follow **`SETUP_IOS_DEVOPS_KIT.md`** (rsync `.cursor/`, `.github/`, `.semgrep/`, `fastlane/`, `Gemfile*`, lint configs, root `CURSOR_*` / `SETUP_*` / `GITIGNORE_APPEND.txt`). Paste **`CURSOR_IOS_DEVOPS_APPLY_TEMPLATE_PROMPT.txt`** or **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** per **`ios-devops-reuse-prompts.mdc`**.
+- **Legacy:** **`ios-devops-cursor-kit`** zip/folder — **`rsync -a kit/ ./`**, then **remove** nested **`ios-devops-cursor-kit/`** (see **`SETUP_IOS_DEVOPS_KIT.md`**). **`CURSOR_IOS_DEVOPS_REUSE.md`** lists the flat file manifest.
+- If nothing was copied yet, copy `.cursor/rules`, `.github/` (workflows + scripts + dependabot), `.semgrep/`, `Gemfile`, `Gemfile.lock`, `fastlane`, `.swiftlint.yml`, `.swiftformat`, then run this playbook with names from **`project.pbxproj`** and shared schemes.

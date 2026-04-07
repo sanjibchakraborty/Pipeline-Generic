@@ -1,0 +1,44 @@
+================================================================================
+COPY FROM THE NEXT LINE THROUGH "END BOOTSTRAP" — Paste into Cursor (Agent)
+Repository root must be the TARGET Xcode app (pipeline files already merged).
+No need to edit this file before copying.
+================================================================================
+
+Bootstrap iOS DevOps for this repository.
+
+Source of truth: `.cursor/rules/ios-devops-agent-playbook.mdc` and `.cursor/rules/github-actions-ios-ci.mdc`.
+
+Pre-check: If `ios-devops-cursor-kit/` still exists next to root `.github/`, delete that nested folder first—only root `.github/` and `.cursor/` count. Ensure **`.semgrep/`** is present at repo root (`mobile.yml`, `ci.yml`, `sentinel.yml`) so `ios-job-security.yml` Semgrep step succeeds; copy from Pipeline-Generic if missing.
+
+1) Git — If no `.git`: init, branch `main`, `.gitignore` per `git-xcode-bootstrap.mdc` plus append any missing lines from `GITIGNORE_APPEND.txt` (`DerivedDataCI/`, `fastlane/keys/`, `vendor/bundle/`). After the first commit, ask for my empty remote clone URL (HTTPS or SSH) and run `git remote add` / `set-url` + `git push -u origin "$(git branch --show-current)"` yourself unless I say skip remote.
+
+2) Discovery — Read `*.xcodeproj/project.pbxproj` and `*.xcodeproj/xcshareddata/xcschemes/*.xcscheme`. Record: relative path to `.xcodeproj`, shared scheme name, `PRODUCT_NAME` / `.app` basename, `PRODUCT_BUNDLE_IDENTIFIER`, source folders for Swift.
+
+3) `ios.yml` + reusable jobs — Replace every **PipelineGeneric** string and **`PipelineGeneric/`** path with this app’s real project path, scheme, bundle id, artifact basename, and `hashFiles(...)` globs that match our Swift tree (not `PipelineGeneric/**` if our layout differs). Files to align together:
+   - `.github/workflows/ios.yml` (inputs passed to `workflow_call` jobs)
+   - `.github/workflows/ios-job-lint.yml` (SwiftFormat + SwiftLint paths)
+   - `.github/workflows/ios-job-simulator-artifact.yml` (artifact name, DerivedData `.app` path)
+   - `.github/workflows/ios-job-test.yml` (scheme, project, coverage paths if needed)
+   - `.github/workflows/ios-release.yml` (`APP_BUNDLE_ID`, project/scheme, IPA name)
+   - `.github/workflows/ios-code-health.yml` and `codeql-swift.yml` if they reference the old names
+   Keep `maxim-lobanov/setup-xcode`, DerivedDataCI cache, Python `simctl` JSON iPhone picker, unsigned Simulator build flags, test + coverage gate behavior, and `Debug-iphonesimulator/*.app` upload pattern. Align `XCODE_VERSION` + `runs-on` across all workflow files.
+
+4) Fastlane — Update `fastlane/Fastfile` (`project`, `scheme`, `output_name`, `APP_IDENTIFIER` usage) to match §3. Run `bundle install` locally only if I ask; CI uses Bundler on the runner.
+
+5) Lint config — Set `.swiftlint.yml` `included:` (and `.swiftformat` paths if present) to our real source/test folders.
+
+6) Tests — Ensure a shared scheme under `xcshareddata/xcschemes` includes unit/UI tests in the Test action, or document a build-only CI change.
+
+7) Handoff — Simulator artifact runbook: `ios-ci-artifact-simulator.mdc`. Release: GitHub secrets for Match / App Store Connect only—do not bundle `git remote` with that; follow `ios-devops-remote-agent-must-push.mdc`.
+
+END BOOTSTRAP
+
+================================================================================
+OPTIONAL — If the agent stopped early, copy from NEXT LINE through "END CONTINUE"
+================================================================================
+
+Continue iOS DevOps bootstrap. Re-read `project.pbxproj` and verify all **PipelineGeneric** / path placeholders in workflows, `Fastfile`, `.swiftlint.yml`, and `.swiftformat`. Confirm every `.cursor/rules/*.mdc` is present. Say what you changed if tests are skipped or CI is build-only.
+
+END CONTINUE
+
+================================================================================

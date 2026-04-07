@@ -19,4 +19,6 @@ This repo uses the iOS DevOps Cursor kit (`ios-devops-agent-playbook.mdc`). Obey
 
 **Keep topics separate in handoffs:** Git remote/push (agent when URL exists) vs **Apple signing / TestFlight GitHub secrets** (developer configures in repo settings—see **`README.md`** and **`.github/workflows/ios-release.yml`** / **`ios.yml`**). Never merge those into one “you still must…” line that sounds like **both** are manual Git steps.
 
-**No duplicate kit folder:** If `ios-devops-cursor-kit/` exists next to root `.github/workflows/`, **delete the nested kit directory** (see `SETUP_IOS_DEVOPS_KIT.md` Step 1b)—do not copy workflows into root again; root is canonical.
+**No duplicate kit folder:** If `ios-devops-cursor-kit/` exists next to root `.github/workflows/`, **delete the nested kit directory** (see **`SETUP_IOS_DEVOPS_KIT.md`**)—do not copy workflows into root again; root is canonical.
+
+**Prompt files:** Developers may paste **`CURSOR_IOS_DEVOPS_APPLY_TEMPLATE_PROMPT.txt`** or **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** with a **repo URL**; when that URL is the app’s empty remote, still run **`git remote` + `git push`** in this workspace after commits exist.

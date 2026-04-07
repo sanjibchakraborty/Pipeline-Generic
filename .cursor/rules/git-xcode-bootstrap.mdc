@@ -39,6 +39,8 @@ After the first commit on `main` (or the current branch), if the developer provi
 
 If they have **not** pasted a URL yet: remind them the project is **local only** until they do; do not imply the host has the code.
 
+**Pipeline template:** For copy-paste bootstrap after CI files are merged, see root **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** and **`SETUP_IOS_DEVOPS_KIT.md`**. For apply-from-template + optional URL in one message, **`CURSOR_IOS_DEVOPS_APPLY_TEMPLATE_PROMPT.txt`**.
+
 ## Non-iOS repos
 
 Replace Xcode entries with stack-specific ignores (e.g. `node_modules/`, `venv/`); keep the same init/branch/remote flow.

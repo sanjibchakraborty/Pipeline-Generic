@@ -1,0 +1,43 @@
+================================================================================
+COPY FROM THE NEXT LINE THROUGH "END APPLY TEMPLATE" — Paste into Cursor (Agent)
+Use when the TARGET Xcode repo is open in this workspace (or you will clone it).
+You will provide: optional template path, optional target remote URL.
+================================================================================
+
+Apply the iOS GitHub Actions pipeline from the **Pipeline-Generic** template repository into this workspace (the target iOS app).
+
+**Inputs I am giving you (fill in or say “default”):**
+- **TEMPLATE_ROOT:** Absolute path to a local clone of Pipeline-Generic, OR say you will clone `https://github.com/<org>/Pipeline-Generic` (or my fork) into a temp directory—use the path I specify: ________________________________
+- **TARGET_REMOTE_URL:** Empty Git HTTPS or SSH URL to publish this app (optional; if omitted, ask once or accept skip): ________________________________
+
+**Do this in order:**
+
+1) **Workspace** — If this folder is not yet a git repo with our Xcode project, and I pasted a **clone URL** for the app itself, `git clone` it, reopen root, and continue from that root. If the app is already here, stay at repo root.
+
+2) **Copy template files** — From TEMPLATE_ROOT, copy only infrastructure (do **not** overwrite or add the template sample app sources `PipelineGeneric/`). Use `rsync` or equivalent:
+   - `.cursor/` → `./.cursor/`
+   - `.github/` → `./.github/`
+   - `.semgrep/` → `./.semgrep/` (required by `ios-job-security.yml`)
+   - `fastlane/` → `./fastlane/` (merge; do not commit `fastlane/keys/`)
+   - `Gemfile`, `Gemfile.lock`
+   - `.swiftlint.yml`, `.swiftformat` (if present)
+   - Root helper files: `GITIGNORE_APPEND.txt`, `CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`, this file, `CURSOR_IOS_DEVOPS_REUSE.md`, `SETUP_IOS_DEVOPS_KIT.md`
+   If nested `ios-devops-cursor-kit/` exists next to root `.github/`, delete it after merge.
+
+3) **Gitignore** — Append lines from `GITIGNORE_APPEND.txt` that are missing from `.gitignore`.
+
+4) **Bootstrap substitutions** — Run the same discovery and replacement steps as in `CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt` (replace **PipelineGeneric** / paths / bundle id across workflows, Fastfile, CodeQL, code health, lint configs).
+
+5) **Git remote** — If TARGET_REMOTE_URL is set (or I paste it now): after a sensible commit, run `git remote add` / `set-url` and `git push -u` per `ios-devops-remote-agent-must-push.mdc`. If push fails, diagnose auth and offer retry.
+
+6) **Handoff** — Summarize required GitHub secrets (see `README.md` and workflow comments). Separate **git remote** (done by you when URL exists) from **Apple signing secrets** (I configure in repo settings).
+
+END APPLY TEMPLATE
+
+================================================================================
+MINIMAL VARIANT — Only paste this if you already merged files and only need Git + push
+================================================================================
+
+I already copied the Pipeline-Generic workflows into this repo. Set `origin` to this URL and push the current branch: PASTE_HTTPS_OR_SSH_URL_HERE
+
+================================================================================
