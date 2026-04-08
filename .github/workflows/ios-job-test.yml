@@ -13,7 +13,7 @@ on:
         default: PipelineGeneric/PipelineGeneric.xcodeproj
       simulator_destination:
         type: string
-        description: xcodebuild -destination value, or "auto" to pick first available iPhone Simulator (recommended for CI)
+        description: Full xcodebuild -destination string, or "auto" (empty = auto) for platform+name+OS from simctl — avoid stale id= UDIDs from another Mac
         default: auto
       coverage_threshold_percent:
         type: string
@@ -61,9 +61,8 @@ jobs:
       - name: Run unit tests with coverage
         run: |
           set -euo pipefail
-          if [ "${SIMULATOR_DESTINATION}" = "auto" ]; then
-            DeviceId="$(python3 "${{ github.workspace }}/.github/scripts/ios_first_iphone_sim_udid.py")"
-            DEST="id=${DeviceId}"
+          if [ -z "${SIMULATOR_DESTINATION:-}" ] || [ "${SIMULATOR_DESTINATION}" = "auto" ]; then
+            DEST="$(python3 "${{ github.workspace }}/.github/scripts/ios_first_iphone_sim_udid.py")"
           else
             DEST="${SIMULATOR_DESTINATION}"
           fi

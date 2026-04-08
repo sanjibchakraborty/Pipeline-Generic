@@ -50,12 +50,12 @@ jobs:
           SCHEME: ${{ inputs.scheme }}
         run: |
           set -euo pipefail
-          DeviceId="$(python3 "${{ github.workspace }}/.github/scripts/ios_first_iphone_sim_udid.py")"
+          DEST="$(python3 "${{ github.workspace }}/.github/scripts/ios_first_iphone_sim_udid.py")"
           xcodebuild build \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration Debug \
-            -destination "id=$DeviceId" \
+            -destination "${DEST}" \
             -derivedDataPath "$DerivedDataPath" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \

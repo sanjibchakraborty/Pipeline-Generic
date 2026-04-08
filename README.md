@@ -6,7 +6,7 @@ Sample iOS app (**PipelineGeneric**) with GitHub Actions CI/CD: reusable jobs, F
 
 | Workflow | When | What |
 |----------|------|------|
-| [iOS CI/CD](.github/workflows/ios.yml) | `push` / `pull_request` to **`main`** or **`master`**; **`workflow_dispatch`** | **SwiftLint** + **SwiftFormat** → security (Semgrep, TruffleHog, Snyk) → **in parallel**: Debug Simulator **`.app`** + unit tests (**≥80%** line coverage); both pick the **first available iPhone Simulator** via [`.github/scripts/ios_first_iphone_sim_udid.py`](.github/scripts/ios_first_iphone_sim_udid.py) → **archive** on **`main`/`master`** push or **manual dispatch**: Match + `gym` IPA |
+| [iOS CI/CD](.github/workflows/ios.yml) | `push` / `pull_request` to **`main`** or **`master`**; **`workflow_dispatch`** | **SwiftLint** + **SwiftFormat** → security (Semgrep, TruffleHog, Snyk) → **in parallel**: Debug Simulator **`.app`** + unit tests (**≥80%** line coverage); both pick the **newest iOS runtime’s first available iPhone Simulator** via [`.github/scripts/ios_first_iphone_sim_udid.py`](.github/scripts/ios_first_iphone_sim_udid.py) (`platform=…,name=…,OS=…`, not a hardcoded UDID) → **archive** on **`main`/`master`** push or **manual dispatch**: Match + `gym` IPA |
 | [iOS code health](.github/workflows/ios-code-health.yml) | Same branches as above | **SwiftLint** + tech-debt + heuristic security reports → artifact **`ios-code-health-reports`** |
 | [CodeQL Swift](.github/workflows/codeql-swift.yml) | `main` / `master` push & PR; **weekly** Monday 06:00 UTC | Swift analysis → **Security → Code scanning** (enable Code scanning on the repo) |
 | [Dependabot](.github/dependabot.yml) | Weekly | Opens PRs to bump **GitHub Actions** pins |
@@ -75,12 +75,12 @@ _Without **`SNYK_TOKEN`**, or without a root **`Package.swift`** / **`Podfile`**
 # List schemes (should show PipelineGeneric)
 xcodebuild -list -project PipelineGeneric/PipelineGeneric.xcodeproj
 
-# Tests + coverage (same simulator picker as CI when using id=…)
-DeviceId="$(python3 .github/scripts/ios_first_iphone_sim_udid.py)"
+# Tests + coverage (same destination picker as CI: name + OS, not a machine-specific UDID)
+DEST="$(python3 .github/scripts/ios_first_iphone_sim_udid.py)"
 xcodebuild test \
   -project PipelineGeneric/PipelineGeneric.xcodeproj \
   -scheme PipelineGeneric \
-  -destination "id=$DeviceId" \
+  -destination "${DEST}" \
   -enableCodeCoverage YES \
   -derivedDataPath /tmp/PGDerived \
   -resultBundlePath /tmp/PGTestResults.xcresult

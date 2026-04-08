@@ -26,14 +26,14 @@ Canonical paths are under **`.github/workflows/`**.
 
 ## Simulator artifact — `.github/workflows/ios-job-simulator-artifact.yml`
 
-- **`xcodebuild build`** (not `test`) on an available iPhone Simulator UDID from **`.github/scripts/ios_first_iphone_sim_udid.py`**.
+- **`xcodebuild build`** (not `test`) on an available iPhone Simulator destination (`platform=…,name=…,OS=…`) from **`.github/scripts/ios_first_iphone_sim_udid.py`**.
 - **Unsigned**: `CODE_SIGNING_ALLOWED=NO`, `DerivedDataPath` **`DerivedDataCI`**.
 - **Artifact**: `DerivedDataCI/Build/Products/Debug-iphonesimulator/PipelineGeneric.app` (name/input may use scheme).
 
 ## Tests & coverage — `.github/workflows/ios-job-test.yml`
 
 - **`xcodebuild test`** with **`-enableCodeCoverage YES`**, `TestResults.xcresult`, then **`xcrun xccov view --report --json`** + Python gate vs **`coverage_threshold_percent`** (default **80**).
-- **Destination**: **`simulator_destination`** defaults to **`auto`** → UDID via **`.github/scripts/ios_first_iphone_sim_udid.py`**. Use any other value as the full **`-destination`** string to pin a simulator.
+- **Destination**: **`simulator_destination`** defaults to **`auto`** (empty also treated as auto) → **`-destination`** string via **`.github/scripts/ios_first_iphone_sim_udid.py`** (`platform=iOS Simulator,name=…,OS=…`). Use any other value as the full **`-destination`** string to pin a simulator (avoid stale **`id=`** UDIDs from another Mac).
 
 ## Archive / TestFlight — `.github/workflows/ios-release.yml` + **`fastlane/Fastfile`**
 
