@@ -67,7 +67,7 @@ The archive job creates a temp keychain, imports the certificate, decodes the pr
 
 ## Local tooling
 
-- **Ruby / Fastlane:** `bundle install` then `bundle exec fastlane staging_build` after you match CI: import the same distribution cert into your login keychain, install the App Store profile under **`~/Library/MobileDevice/Provisioning Profiles/`** as **`{UUID}.mobileprovision`**, and export **`APPLE_TEAM_ID`**, **`IOS_PROVISIONING_PROFILE_NAME`** (profile **Name** from the portal / plist), and **`APP_IDENTIFIER`** (bundle id). Or install **fastlane** via Homebrew.
+- **Ruby / Fastlane:** use **Ruby 3.1.x** for **`bundle install`** (same as archive CI): **fastlane → xcodeproj → CFPropertyList** 3.x does not support Ruby 3.2+. Then `bundle exec fastlane staging_build` after you match CI: import the same distribution cert into your login keychain, install the App Store profile under **`~/Library/MobileDevice/Provisioning Profiles/`** as **`{UUID}.mobileprovision`**, and export **`APPLE_TEAM_ID`**, **`IOS_PROVISIONING_PROFILE_NAME`** (profile **Name** from the portal / plist), and **`APP_IDENTIFIER`** (bundle id). Or install **fastlane** via Homebrew.
 - **SwiftLint:** config is [`.swiftlint.yml`](.swiftlint.yml); CI runs it in **`ios-job-lint.yml`** (main DAG) and **iOS code health** (JSON + reports artifact).
 - **SwiftFormat:** config is [`.swiftformat`](.swiftformat); install with **`brew install swiftformat`**, then e.g. `swiftformat --lint PipelineGeneric/PipelineGeneric PipelineGeneric/PipelineGenericTests PipelineGeneric/PipelineGenericUITests` (same as **`ios-job-lint.yml`**).
 

@@ -66,14 +66,13 @@ jobs:
           key: archive-${{ runner.os }}-${{ hashFiles('PipelineGeneric/PipelineGeneric.xcodeproj/project.pbxproj', '**/Package.resolved', '**/Podfile.lock', 'Gemfile.lock') }}
           restore-keys: archive-${{ runner.os }}-
 
+      # CFPropertyList 3.x (via xcodeproj → fastlane) declares Ruby < 3.2; Ruby 3.2+ makes `bundle install` fail.
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.2"
+          ruby-version: "3.1"
+          bundler: "2.4.12"
           bundler-cache: true
-
-      - name: Install Ruby gems (fastlane)
-        run: bundle install --jobs 4 --retry 3
 
       # ── App Store distribution certificate + provisioning profile (no Match) ──
       - name: Install App Store certificate and provisioning profile
