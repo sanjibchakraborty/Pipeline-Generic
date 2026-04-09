@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       upload_to_testflight:
-        description: After Match + gym on main/master, upload IPA to TestFlight
+        description: After archive + gym on main/master, upload IPA to TestFlight
         required: false
         default: false
         type: boolean

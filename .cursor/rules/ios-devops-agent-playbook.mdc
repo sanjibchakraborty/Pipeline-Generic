@@ -60,7 +60,7 @@ If **push fails** (auth, permissions, non–fast-forward): report the error, giv
 **This repository (Pipeline-Generic) — use as the live pattern:**
 
 - **`.github/workflows/ios.yml`** — orchestrator (`workflow_dispatch` optional TestFlight checkbox, push/PR to `main` and `master`).
-- Reusable callees: **`ios-job-lint.yml`**, **`ios-job-security.yml`**, **`ios-job-simulator-artifact.yml`**, **`ios-job-test.yml`**, **`ios-release.yml`** (Match + `gym`, optional upload step).
+- Reusable callees: **`ios-job-lint.yml`**, **`ios-job-security.yml`**, **`ios-job-simulator-artifact.yml`**, **`ios-job-test.yml`**, **`ios-release.yml`** (secrets P12 + profile + `gym`, optional upload step).
 - Standalone: **`ios-code-health.yml`**, **`codeql-swift.yml`**, **`.github/dependabot.yml`**.
 - Details and paths: **`github-actions-ios-ci.mdc`**.
 
@@ -75,12 +75,12 @@ If **push fails** (auth, permissions, non–fast-forward): report the error, giv
 **This repository:**
 
 - **`ios-release.yml`** is **`workflow_call` only** — invoked by **`ios.yml`** on **`main`/`master` push** or **`workflow_dispatch`**.
-- Signing: **Fastlane Match** + **`bundle exec fastlane staging_build`**; optional **`upload_testflight_ipa`** when the orchestrator passes **`upload_to_testflight: true`** (manual run with checkbox).
-- Required secrets are documented in **`README.md`** (not P12/profile-in-YAML).
+- Signing: **GitHub Actions secrets** (base64 distribution **`.p12`**, password, base64 App Store **`.mobileprovision`**) + temp keychain step, then **`bundle exec fastlane staging_build`** (manual signing); optional **`upload_testflight_ipa`** when the orchestrator passes **`upload_to_testflight: true`** (manual run with checkbox).
+- Required secrets are documented in **`README.md`**.
 
 **Other templates (e.g. raw kit `ios-release.yml`):**
 
-- May use **tag** triggers (`v*`), **base64 P12 + profile** in secrets, and **`xcodebuild` archive/export** in YAML. If you copy that variant into another repo, follow **that** file’s comments for secrets—do not assume it matches this repo’s Match-based **`ios-release.yml`**.
+- May use **tag** triggers (`v*`), different secret names, or raw **`xcodebuild` archive/export** in YAML. If you copy that variant into another repo, follow **that** file’s comments for secrets—do not assume it matches this repo’s **`ios-release.yml`**.
 
 ## 5. After green CI
 
@@ -93,7 +93,7 @@ If **push fails** (auth, permissions, non–fast-forward): report the error, giv
 
 ## Out of scope unless requested
 
-- Do not run or “fix” **release** on behalf of the user without the signing material their workflow expects (e.g. Match repo + password + ASC API key **for this repo**; or Distribution cert + App Store profile + team ID **for P12-style workflows**).
+- Do not run or “fix” **release** on behalf of the user without the signing material their workflow expects (e.g. distribution **`.p12`** + App Store profile secrets + ASC API key **for this repo**, as in **`README.md`**).
 
 ## Reuse on another project
 

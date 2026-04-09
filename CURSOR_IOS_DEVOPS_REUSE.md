@@ -19,7 +19,7 @@ Agents must follow **`ios-devops-remote-agent-must-push.mdc`**: if a URL is past
 | `.cursor/rules/*.mdc` | Cursor agent ordering, CI reference, Git bootstrap, simulator artifact instructions |
 | `.github/workflows/ios.yml` | Orchestrator (`workflow_call` to reusable jobs) |
 | `.github/workflows/ios-job-*.yml` | Lint, security, simulator `.app`, tests + coverage |
-| `.github/workflows/ios-release.yml` | Match + `gym`; optional TestFlight |
+| `.github/workflows/ios-release.yml` | Base64 P12 + profile secrets + `gym`; optional TestFlight |
 | `.github/workflows/ios-code-health.yml` | Reports artifact |
 | `.github/workflows/codeql-swift.yml` | CodeQL Swift |
 | `.github/dependabot.yml` | Weekly Actions bumps |

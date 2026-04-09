@@ -29,7 +29,7 @@ Pre-check: If `ios-devops-cursor-kit/` still exists next to root `.github/`, del
 
 6) Tests — Ensure a shared scheme under `xcshareddata/xcschemes` includes unit/UI tests in the Test action, or document a build-only CI change.
 
-7) Handoff — Simulator artifact runbook: `ios-ci-artifact-simulator.mdc`. Release: GitHub secrets for Match / App Store Connect only—do not bundle `git remote` with that; follow `ios-devops-remote-agent-must-push.mdc`.
+7) Handoff — Simulator artifact runbook: `ios-ci-artifact-simulator.mdc`. Release: GitHub secrets for distribution P12 + App Store profile + App Store Connect API key—do not bundle `git remote` with that; follow `ios-devops-remote-agent-must-push.mdc`.
 
 END BOOTSTRAP
 

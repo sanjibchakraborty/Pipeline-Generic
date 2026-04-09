@@ -53,7 +53,7 @@ If the agent stops early, use the **Continue** block in the bootstrap prompt fil
 
 ## After bootstrap
 
-- Configure **GitHub Actions secrets** for Match / App Store Connect when you want archive + TestFlight (see **`README.md`**).
+- Configure **GitHub Actions secrets** for distribution certificate, App Store provisioning profile, and App Store Connect when you want archive + TestFlight (see **`README.md`**).
 - Download Simulator build artifacts using **`ios-ci-artifact-simulator.mdc`**.
 
 ## Maintainers

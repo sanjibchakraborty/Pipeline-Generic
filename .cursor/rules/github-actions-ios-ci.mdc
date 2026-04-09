@@ -1,5 +1,5 @@
 ---
-description: GitHub Actions for iOS — this repo’s reusable workflows, CI DAG, Match archive, code health, CodeQL
+description: GitHub Actions for iOS — this repo’s reusable workflows, CI DAG, P12/profile archive, code health, CodeQL
 globs: .github/workflows/**/*.yml,.github/dependabot.yml
 alwaysApply: false
 ---
@@ -19,7 +19,7 @@ Canonical paths are under **`.github/workflows/`**.
 | Security (Semgrep, TruffleHog, Snyk) | `ios-job-security.yml` |
 | Simulator Debug `.app` artifact | `ios-job-simulator-artifact.yml` |
 | Unit tests + **xccov** line coverage gate | `ios-job-test.yml` |
-| Match + `gym` IPA (push to `main`/`master` or manual dispatch) | `ios-release.yml` |
+| Secrets-based signing + `gym` IPA (push to `main`/`master` or manual dispatch) | `ios-release.yml` |
 
 - **Runner / Xcode**: `macos-15` + **`maxim-lobanov/setup-xcode@v1`** with **`env.XCODE_VERSION: latest-stable`** (set in each reusable workflow; keep them aligned when you switch to a pin).
 - **Project**: **`PipelineGeneric/PipelineGeneric.xcodeproj`**, scheme **`PipelineGeneric`**, bundle id **`com.codeandtheory.PipelineGeneric`**.
@@ -37,8 +37,8 @@ Canonical paths are under **`.github/workflows/`**.
 
 ## Archive / TestFlight — `.github/workflows/ios-release.yml` + **`fastlane/Fastfile`**
 
-- **Signing**: **Fastlane Match** (read-only app store), not base64 `.p12` / profile in YAML.
-- **Secrets**: `APP_STORE_CONNECT_*`, `MATCH_PASSWORD`, `MATCH_GIT_URL`, optional `MATCH_GIT_BASIC_AUTHORIZATION`.
+- **Signing**: **GitHub Actions secrets** — base64 **distribution `.p12`**, password, base64 **App Store `.mobileprovision`** (Edward Jones–style temp keychain + `security import` + profile under **`~/Library/MobileDevice/Provisioning Profiles/{UUID}.mobileprovision`**). **`fastlane staging_build`** uses **manual** signing; **`APPLE_TEAM_ID`** and **`IOS_PROVISIONING_PROFILE_NAME`** are derived from the profile plist in the workflow.
+- **Secrets**: `DIST_CERTIFICATE_BASE64`, `DIST_CERTIFICATE_PASSWORD`, `DIST_PROFILE_BASE64`, `APP_STORE_CONNECT_*` (TestFlight + workflow contract), optional `IOS_CODESIGN_IDENTITY`.
 - **Build**: **`bundle exec fastlane staging_build`** → **`build/PipelineGeneric.ipa`**.
 - **Optional TestFlight**: after `gym`, **`bundle exec fastlane upload_testflight_ipa`** when the orchestrator passes **`upload_to_testflight: true`** (manual **`workflow_dispatch`** with checkbox).
 
