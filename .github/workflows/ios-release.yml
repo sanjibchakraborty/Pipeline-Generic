@@ -27,6 +27,17 @@ on:
       IOS_CODESIGN_IDENTITY:
         required: false
 
+  workflow_dispatch:
+    inputs:
+      app_identifier:
+        type: string
+        description: Application bundle ID (must match the App Store provisioning profile)
+        default: com.codeandtheory.PipelineGeneric
+      upload_to_testflight:
+        type: boolean
+        description: Upload the IPA to TestFlight after gym (App Store Connect API secrets)
+        default: false
+
 env:
   XCODE_VERSION: latest-stable
 

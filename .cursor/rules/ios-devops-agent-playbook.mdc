@@ -74,7 +74,7 @@ If **push fails** (auth, permissions, non–fast-forward): report the error, giv
 
 **This repository:**
 
-- **`ios-release.yml`** is **`workflow_call` only** — invoked by **`ios.yml`** on **`main`/`master` push** or **`workflow_dispatch`**.
+- **`ios-release.yml`** — reusable via **`workflow_call`** from **`ios.yml`**, or run alone from **Actions** via **`workflow_dispatch`** (same inputs: bundle id, optional TestFlight upload).
 - Signing: **GitHub Actions secrets** (base64 distribution **`.p12`**, password, base64 App Store **`.mobileprovision`**) + temp keychain step, then **`bundle exec fastlane staging_build`** (manual signing); optional **`upload_testflight_ipa`** when the orchestrator passes **`upload_to_testflight: true`** (manual run with checkbox).
 - Required secrets are documented in **`README.md`**.
 

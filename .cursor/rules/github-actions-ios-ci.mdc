@@ -37,10 +37,11 @@ Canonical paths are under **`.github/workflows/`**.
 
 ## Archive / TestFlight — `.github/workflows/ios-release.yml` + **`fastlane/Fastfile`**
 
+- **Triggers**: **`workflow_call`** from **`ios.yml`**, or **`workflow_dispatch`** on **`ios-release.yml`** alone (Actions → **iOS — archive (staging)**) to archive without running the full CI DAG.
 - **Signing**: **GitHub Actions secrets** — base64 **distribution `.p12`**, password, base64 **App Store `.mobileprovision`** (Edward Jones–style temp keychain + `security import` + profile under **`~/Library/MobileDevice/Provisioning Profiles/{UUID}.mobileprovision`**). **`fastlane staging_build`** uses **manual** signing; **`APPLE_TEAM_ID`** and **`IOS_PROVISIONING_PROFILE_NAME`** are derived from the profile plist in the workflow.
 - **Secrets**: `DIST_CERTIFICATE_BASE64`, `DIST_CERTIFICATE_PASSWORD`, `DIST_PROFILE_BASE64`, `APP_STORE_CONNECT_*` (TestFlight + workflow contract), optional `IOS_CODESIGN_IDENTITY`.
 - **Build**: **`bundle exec fastlane staging_build`** → **`build/PipelineGeneric.ipa`**.
-- **Optional TestFlight**: after `gym`, **`bundle exec fastlane upload_testflight_ipa`** when the orchestrator passes **`upload_to_testflight: true`** (manual **`workflow_dispatch`** with checkbox).
+- **Optional TestFlight**: after `gym`, **`bundle exec fastlane upload_testflight_ipa`** when **`upload_to_testflight`** is true (from **`ios.yml`** dispatch or from **`ios-release.yml`** dispatch).
 
 ## Security job — `.github/workflows/ios-job-security.yml`
 

@@ -13,7 +13,7 @@ Sample iOS app (**PipelineGeneric**) with GitHub Actions CI/CD: reusable jobs, F
 
 ### Reusable workflows (`workflow_call`)
 
-These are invoked by [`.github/workflows/ios.yml`](.github/workflows/ios.yml) only (not separate top-level runs):
+These are invoked by [`.github/workflows/ios.yml`](.github/workflows/ios.yml). **[`ios-release.yml`](.github/workflows/ios-release.yml)** can also be run standalone (**Actions** → **iOS — archive (staging)** → **Run workflow**) with the same inputs as the orchestrator’s archive job:
 
 | File | Role |
 |------|------|
@@ -29,6 +29,8 @@ From **Actions** → **iOS CI/CD** → **Run workflow**:
 
 - Runs the same DAG; **archive** (keychain + `gym`) always runs on manual dispatch.
 - **Upload IPA to TestFlight** runs only when you enable that input (uses the App Store Connect API key secrets).
+
+To run **only** the archive (skip lint, tests, and simulator jobs), use **Actions** → **iOS — archive (staging)** → **Run workflow** (same **`app_identifier`** and **upload to TestFlight** inputs).
 
 ## Repository secrets
 
