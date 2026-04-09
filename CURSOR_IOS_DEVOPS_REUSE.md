@@ -37,7 +37,7 @@ Agents must follow **`ios-devops-remote-agent-must-push.mdc`**: if a URL is past
 
 ## Placeholders to replace
 
-Workflows and `Fastfile` in this repo use **`PipelineGeneric`**, **`PipelineGeneric/`**, **`com.codeandtheory.PipelineGeneric`**, and artifact names derived from the scheme. After copying, run discovery on the target `project.pbxproj` and shared schemes, then align every reference (see **`github-actions-ios-ci.mdc`**).
+Workflows and `Fastfile` in this repo use **`PipelineGeneric`**, **`PipelineGeneric/`**, **`com.codeandtheory.edward-jones-poc.dist`** (release bundle id), and artifact names derived from the scheme. After copying, run discovery on the target `project.pbxproj` and shared schemes, then align every reference (see **`github-actions-ios-ci.mdc`**).
 
 ## Copy-paste prompts (short index)
 

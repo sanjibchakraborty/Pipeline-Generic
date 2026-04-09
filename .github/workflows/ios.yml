@@ -53,5 +53,5 @@ jobs:
     uses: ./.github/workflows/ios-release.yml
     secrets: inherit
     with:
-      app_identifier: com.codeandtheory.PipelineGeneric
+      app_identifier: com.codeandtheory.edward-jones-poc.dist
       upload_to_testflight: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.upload_to_testflight == 'true') }}

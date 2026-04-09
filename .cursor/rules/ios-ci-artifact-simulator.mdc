@@ -27,7 +27,7 @@ alwaysApply: false
    xcrun simctl launch booted <CFBundleIdentifier>
    ```
 
-   Bundle ID: Xcode target **General** or `Info.plist` / `project.pbxproj` `PRODUCT_BUNDLE_IDENTIFIER` (this repo: `com.codeandtheory.PipelineGeneric`).
+   Bundle ID: Xcode target **General** or `Info.plist` / `project.pbxproj` `PRODUCT_BUNDLE_IDENTIFIER` (this repo: Debug `com.codeandtheory.edward-jones-poc.dev`, Release `com.codeandtheory.edward-jones-poc.dist`).
 
 ## Errors
 

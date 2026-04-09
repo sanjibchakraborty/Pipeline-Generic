@@ -22,7 +22,7 @@ Canonical paths are under **`.github/workflows/`**.
 | Secrets-based signing + `gym` IPA (push to `main`/`master` or manual dispatch) | `ios-release.yml` |
 
 - **Runner / Xcode**: `macos-15` + **`maxim-lobanov/setup-xcode@v1`** with **`env.XCODE_VERSION: latest-stable`** (set in each reusable workflow; keep them aligned when you switch to a pin).
-- **Project**: **`PipelineGeneric/PipelineGeneric.xcodeproj`**, scheme **`PipelineGeneric`**, bundle id **`com.codeandtheory.PipelineGeneric`**.
+- **Project**: **`PipelineGeneric/PipelineGeneric.xcodeproj`**, scheme **`PipelineGeneric`**, bundle id **`com.codeandtheory.edward-jones-poc.dist`** (Release; Debug uses **`com.codeandtheory.edward-jones-poc.dev`**).
 
 ## Simulator artifact — `.github/workflows/ios-job-simulator-artifact.yml`
 
@@ -75,7 +75,7 @@ Canonical paths are under **`.github/workflows/`**.
 
 When copying this repo into a **different** iOS project, replace **all** template identifiers together:
 
-- **Project path / scheme / bundle id:** **`PipelineGeneric`**, **`PipelineGeneric/`**, **`com.codeandtheory.PipelineGeneric`**, IPA and artifact names, **`APP_BUNDLE_ID`** / **`APP_IDENTIFIER`** inputs, SwiftLint/SwiftFormat/CodeQL path lists.
+- **Project path / scheme / bundle id:** **`PipelineGeneric`**, **`PipelineGeneric/`**, **`com.codeandtheory.edward-jones-poc.dist`**, IPA and artifact names, **`APP_BUNDLE_ID`** / **`APP_IDENTIFIER`** inputs, SwiftLint/SwiftFormat/CodeQL path lists.
 - **Entry prompts:** root **`CURSOR_IOS_DEVOPS_BOOTSTRAP_PROMPT.txt`** (files already merged) or **`CURSOR_IOS_DEVOPS_APPLY_TEMPLATE_PROMPT.txt`** (copy from Pipeline-Generic + bootstrap). **Human steps:** **`SETUP_IOS_DEVOPS_KIT.md`**; **routing:** **`CURSOR_IOS_DEVOPS_REUSE.md`**.
 - **Semgrep:** copy **`.semgrep/`** with workflows (see **`SETUP_IOS_DEVOPS_KIT.md`**); rules are shared unless you customize them per app.
 - Keep the **DAG** unchanged unless the target app cannot run tests or needs a build-only job—then document the change in the handoff.

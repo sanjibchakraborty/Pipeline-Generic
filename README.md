@@ -73,7 +73,7 @@ The archive job creates a temp keychain, imports the certificate, decodes the pr
 
 ## Layout
 
-- **App:** [PipelineGeneric/PipelineGeneric.xcodeproj](PipelineGeneric/PipelineGeneric.xcodeproj), bundle id **`com.codeandtheory.PipelineGeneric`**.
+- **App:** [PipelineGeneric/PipelineGeneric.xcodeproj](PipelineGeneric/PipelineGeneric.xcodeproj), Release bundle id **`com.codeandtheory.edward-jones-poc.dist`** (Debug: **`com.codeandtheory.edward-jones-poc.dev`**).
 - **Shared Xcode scheme (required for CI):** [`PipelineGeneric.xcodeproj/xcshareddata/xcschemes/PipelineGeneric.xcscheme`](PipelineGeneric/PipelineGeneric.xcodeproj/xcshareddata/xcschemes/PipelineGeneric.xcscheme) — must stay committed (do not rely only on `xcuserdata` schemes).
 - **Scripts:** [`.github/scripts/`](.github/scripts/) — simulator UDID helper, code-health reports.
 - **Fastlane:** [fastlane/Fastfile](fastlane/Fastfile) — lanes `staging_build`, `upload_testflight_ipa`.

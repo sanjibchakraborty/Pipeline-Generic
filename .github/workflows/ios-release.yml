@@ -6,7 +6,7 @@ on:
       app_identifier:
         type: string
         description: Application bundle ID (must match the App Store provisioning profile)
-        default: com.codeandtheory.PipelineGeneric
+        default: com.codeandtheory.edward-jones-poc.dist
       upload_to_testflight:
         type: boolean
         description: Upload the IPA to TestFlight after gym (App Store Connect API secrets)
@@ -32,7 +32,7 @@ on:
       app_identifier:
         type: string
         description: Application bundle ID (must match the App Store provisioning profile)
-        default: com.codeandtheory.PipelineGeneric
+        default: com.codeandtheory.edward-jones-poc.dist
       upload_to_testflight:
         type: boolean
         description: Upload the IPA to TestFlight after gym (App Store Connect API secrets)
