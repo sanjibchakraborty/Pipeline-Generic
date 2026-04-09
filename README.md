@@ -53,7 +53,7 @@ _Without **`SNYK_TOKEN`**, or without a root **`Package.swift`** / **`Podfile`**
 | `APP_STORE_CONNECT_ISSUER_ID` | TestFlight upload |
 | `APP_STORE_CONNECT_API_KEY` | API key **PEM contents** (plain text, not base64) |
 
-The archive job creates a temp keychain, imports the certificate, decodes the profile, installs it as **`{UUID}.mobileprovision`**, reads **Name** / **TeamIdentifier** from the profile for manual signing, then runs **`bundle exec fastlane staging_build`**.
+The archive job creates a temp keychain, imports the certificate, decodes the profile, installs it as **`{UUID}.mobileprovision`**, reads **Name** / **TeamIdentifier** from the profile for manual signing, then runs **`bundle exec fastlane staging_build`**. On **GitHub Actions**, **`staging_build`** bumps **CFBundleVersion** to **latest TestFlight build + 1** (App Store Connect API) so TestFlight uploads do not fail with “bundle version must be higher than the previously uploaded version.”
 
 ### Optional — signing
 
