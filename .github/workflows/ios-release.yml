@@ -136,7 +136,7 @@ jobs:
         run: bundle exec fastlane upload_testflight_ipa ipa:"${{ github.workspace }}/build/PipelineGeneric.ipa"
 
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: PipelineGeneric-staging-ipa
           path: build/PipelineGeneric.ipa
