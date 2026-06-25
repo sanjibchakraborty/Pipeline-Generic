@@ -43,7 +43,7 @@ jobs:
           xcode-version: ${{ env.XCODE_VERSION }}
 
       - name: Cache SPM
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Caches/org.swift.swiftpm
@@ -52,7 +52,7 @@ jobs:
           restore-keys: spm-${{ runner.os }}-
 
       - name: Cache DerivedData
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/Library/Developer/Xcode/DerivedData
           key: derived-${{ runner.os }}-${{ hashFiles('PipelineGeneric/PipelineGeneric.xcodeproj/project.pbxproj', '**/Package.resolved', 'PipelineGeneric/**/*.swift') }}
