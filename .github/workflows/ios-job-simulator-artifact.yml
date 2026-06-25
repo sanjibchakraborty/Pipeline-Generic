@@ -35,7 +35,7 @@ jobs:
           xcode-version: ${{ env.XCODE_VERSION }}
 
       - name: Cache DerivedData
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: DerivedDataCI
           key: ${{ runner.os }}-simapp-${{ hashFiles('PipelineGeneric/PipelineGeneric.xcodeproj/project.pbxproj', 'PipelineGeneric/PipelineGeneric.xcodeproj/xcshareddata/xcschemes/*.xcscheme', 'PipelineGeneric/**/*.swift') }}

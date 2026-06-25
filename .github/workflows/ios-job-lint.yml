@@ -24,7 +24,7 @@ jobs:
           xcode-version: ${{ env.XCODE_VERSION }}
 
       - name: Cache Homebrew downloads
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/Library/Caches/Homebrew/downloads
           key: brew-dl-${{ runner.os }}-lint-${{ hashFiles('.github/workflows/ios-*.yml', '.swiftformat') }}
